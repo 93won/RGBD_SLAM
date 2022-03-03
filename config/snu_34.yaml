@@ -1,0 +1,41 @@
+%YAML:1.0
+# data
+data_dir: /home/cadit/Data/snu_bldg_34/
+association_dir: /home/cadit/Data/snu_bldg_34/associations.txt
+voc_dir: /home/cadit/RGBD-SLAM/Vocabulary/vocab_34.yml.gz
+gt_dir: None
+est_dir: /home/cadit/Result_RGBD/34_loop/stamped_traj_estimate.txt
+
+stride: 4
+
+# camera intrinsics
+camera.fx: 435.47239
+camera.fy: 435.47239
+camera.cx: 424
+camera.cy: 240
+
+height: 480
+width: 848
+
+loop_detect: 1
+score_threshold: 0.4
+
+# feature
+feature_type: ORB
+num_features: 2000
+num_features_tracking_threshold: 500
+depth_min: 0.5
+depth_max: 10.0
+
+
+
+match_threshold_tracking: 20
+
+
+knn_ratio: 0.7
+
+window_size: 5
+keyframe_min_dist_threshold: 0.05
+
+pixel_to_meter_scalefactor: 0.001
+
