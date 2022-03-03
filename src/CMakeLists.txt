@@ -10,6 +10,7 @@ utils/Viewer.cpp
 core/Frontend.cpp
 core/Matcher.cpp
 core/Extractor.cpp
-core/Estimator.cpp)
+core/Estimator.cpp
+core/PoseGraphOptimizer.cpp)
 
 target_link_libraries(rgbd_slam ${THIRD_PARTY_LIBS})

@@ -19,6 +19,7 @@
 #include "core/Matcher.h"
 #include "core/Extractor.h"
 #include "core/Estimator.h"
+#include "core/PoseGraphOptimizer.h"
 
 #include "utils/PointCloudUtils.h"
 #include "utils/Viewer.h"
@@ -57,9 +58,8 @@ namespace RGBDSLAM
             map_ = map;
             map_->SetWindowSize(window_size_);
             estimator_->SetMap(map_);
+            pose_graph_optimizer_->SetMap(map_);
         }
-
-        void SetBackend(std::shared_ptr<Backend> backend) { backend_ = backend; }
 
         void SetViewer(std::shared_ptr<Viewer> viewer)
         {
@@ -79,6 +79,7 @@ namespace RGBDSLAM
         {
             camera_ = camera;
             estimator_->SetCamera(camera);
+            pose_graph_optimizer_->SetCamera(camera);
         }
 
         bool RGBDInit();
@@ -110,6 +111,7 @@ namespace RGBDSLAM
         Matcher::Ptr matcher_;
         Extractor::Ptr extractor_;
         Estimator::Ptr estimator_;
+        PoseGraphOptimizer::Ptr pose_graph_optimizer_;
 
         int window_size_ = 5;
 

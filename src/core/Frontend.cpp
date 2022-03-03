@@ -12,6 +12,7 @@ namespace RGBDSLAM
         matcher_ = Matcher::Ptr(new Matcher(config_file_path)); // cv::FlannBasedMatcher(cv::makePtr<cv::flann::LshIndexParams>(12, 20, 2));
         extractor_ = Extractor::Ptr(new Extractor(config_file_path));
         estimator_ = Estimator::Ptr(new Estimator(config_file_path));
+        pose_graph_optimizer_ = PoseGraphOptimizer::Ptr(new PoseGraphOptimizer(config_file_path));
         
 
         window_size_ = Config::Get<int>("window_size");
@@ -86,7 +87,7 @@ namespace RGBDSLAM
                 if (loopInfoIdx.size() > 0)
                 {
                     // PoseGraphOptimization(loopInfoIdx, loopInfoRelPose);
-                    estimator_->PoseGraphOptimization2D(loopInfoIdx, loopInfoRelPose);
+                    pose_graph_optimizer_->PoseGraphOptimization2D(loopInfoIdx, loopInfoRelPose);
 
                     // update map point
 

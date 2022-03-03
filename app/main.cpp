@@ -135,8 +135,10 @@ int main(int argc, char **argv)
 
     frontend->SetCamera(camera);
     frontend->SetMap(map);
+
     viewer->SetMap(map);
     viewer->SetGT(qvec, tvec);
+    
     frontend->SetGT(qvec, tvec);
     frontend->SetViewer(viewer);
 
