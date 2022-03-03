@@ -105,8 +105,8 @@ namespace RGBDSLAM
         int tracking_inliers_ = 0; // inliers, used for testing new keyframes
 
         // params
-
         int num_features_tracking_threshold = 50;
+        int loop_frame_th_ = 100;
 
         Matcher::Ptr matcher_;
         Extractor::Ptr extractor_;

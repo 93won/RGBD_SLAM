@@ -30,6 +30,9 @@ namespace RGBDSLAM
         void PoseGraphOptimization(std::vector<std::vector<int>> &loopInfoIdx, std::vector<SE3> &loopInfoRelPose);
         void PoseGraphOptimization2D(std::vector<std::vector<int>> &loopInfoIdx, std::vector<SE3> &loopInfoRelPose);
 
+        ceres::Solver::Options options;
+        ceres::Solver::Summary summary;
+
         Camera::Ptr camera_;
         Map::Ptr map_;
     };

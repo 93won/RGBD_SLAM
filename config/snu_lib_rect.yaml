@@ -14,19 +14,24 @@ camera.fy: 435.47239
 camera.cx: 424
 camera.cy: 240
 
-depth_min: 0.5
-depth_max: 10.0
-
 height: 480
 width: 848
+
 
 loop_detect: 1
 score_threshold: 0.35
 
 # feature
 feature_type: ORB
-num_features: 1000
+num_features: 500
 num_features_tracking_threshold: 300
+depth_min: 0.5
+depth_max: 10.0
+
+
+
+match_threshold_tracking: 20
+loop_frame_th: 200
 
 knn_ratio: 0.7
 

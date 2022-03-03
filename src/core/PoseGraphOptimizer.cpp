@@ -5,6 +5,12 @@ namespace RGBDSLAM
 
     PoseGraphOptimizer::PoseGraphOptimizer(std::string config_file_path)
     {
+        options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
+        options.minimizer_progress_to_stdout = false;
+        options.trust_region_strategy_type = ceres::DOGLEG;
+        options.num_threads = 4;
+        options.max_num_iterations = 10;
+        options.max_solver_time_in_seconds = 0.04;
     }
 
     void PoseGraphOptimizer::PoseGraphOptimization(std::vector<std::vector<int>> &loopInfoIdx, std::vector<SE3> &loopInfoRelPose)
@@ -83,19 +89,7 @@ namespace RGBDSLAM
         problem.SetParameterBlockConstant(qvec_param[0].data());
         problem.SetParameterBlockConstant(tvec_param[0].data());
 
-        ceres::Solver::Options options;
-        options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
-        options.minimizer_progress_to_stdout = false;
-        options.trust_region_strategy_type = ceres::DOGLEG;
-        // ptions.num_threads = 2
-        options.num_threads = 4;
-        options.max_num_iterations = 10;
-        options.max_solver_time_in_seconds = 0.04;
-        ceres::Solver::Summary summary;
-
         ceres::Solve(options, &problem, &summary);
-
-        std::cout << summary.BriefReport() << "\n";
 
         for (int i = 0; i < nb_poses; i++)
         {
@@ -191,8 +185,6 @@ namespace RGBDSLAM
         options.max_solver_time_in_seconds = 0.04;
         ceres::Solver::Summary summary;
         ceres::Solve(options, &problem, &summary);
-
-        std::cout << summary.BriefReport() << "\n";
 
         for (int i = 0; i < nb_poses; i++)
         {

@@ -8,19 +8,16 @@ namespace RGBDSLAM
         if (!Config::SetParameterFile(config_file_path))
             LOG(INFO) << "No configuration file loaded.";
 
-     
         matcher_ = Matcher::Ptr(new Matcher(config_file_path)); // cv::FlannBasedMatcher(cv::makePtr<cv::flann::LshIndexParams>(12, 20, 2));
         extractor_ = Extractor::Ptr(new Extractor(config_file_path));
         estimator_ = Estimator::Ptr(new Estimator(config_file_path));
         pose_graph_optimizer_ = PoseGraphOptimizer::Ptr(new PoseGraphOptimizer(config_file_path));
-        
 
         window_size_ = Config::Get<int>("window_size");
-
         num_features_tracking_threshold = Config::Get<int>("num_features_tracking_threshold");
-
         loop_detect_ = (bool)(Config::Get<int>("loop_detect"));
         score_threshold_ = Config::Get<double>("score_threshold");
+        loop_frame_th_ = Config::Get<int>("loop_frame_th");
 
         std::string voc_dir = Config::Get<std::string>("voc_dir");
         LOG(INFO) << voc_dir;
@@ -146,8 +143,6 @@ namespace RGBDSLAM
 
         db_.query(current_frame_->des_, ret, 10);
 
-        int loop_frame_th = 100;
-
         int kf_id_current = (int)(map_->keyframe_id_.size()) - 1;
 
         int cnt = 0;
@@ -161,7 +156,7 @@ namespace RGBDSLAM
             }
 
             int kf_id = r.Id;
-            if (kf_id_current - kf_id > loop_frame_th && r.Score > score_threshold_)
+            if (kf_id_current - kf_id > loop_frame_th_ && r.Score > score_threshold_)
             {
 
                 int frame_id = map_->keyframe_id_[kf_id];
@@ -178,15 +173,13 @@ namespace RGBDSLAM
                     frame2param.insert(std::make_pair((int)current_frame_->id_, 1));
 
                     int nb_match = matcher_->MatchTwoFrames(frame_ref, current_frame_, map_, frame2param);
+
                     SE3 RelPose;
-                    if (nb_match < 20)
+
+                    if (nb_match == 20)
                         RelPose = current_frame_->Pose() * frame_ref->Pose().inverse();
                     else
                         RelPose = estimator_->EstimateRelPose2D(frame2param);
-
-                    // SE3 RelPose = EstimateRelPose(frame_ref, current_frame_);
-                    // SE3 RelPoseErr = current_frame_->Pose() * frame_ref->Pose().inverse();
-                    // SE3 RelPose = EstimateRelPose2D(frame_ref, current_frame_);
 
                     if (RelPose.translation().norm() < 0.5)
                     {

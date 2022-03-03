@@ -42,7 +42,6 @@ int main(int argc, char **argv)
     // Initialize detector, descriptor extractor, the number of features to extract
 
     Frontend::Ptr frontend = Frontend::Ptr(new Frontend(config_file_path_));
-    // Backend::Ptr backend = Backend::Ptr(new Backend(config_file_path_));
     Map::Ptr map = Map::Ptr(new Map);
 
     double fx = Config::Get<double>("camera.fx");
