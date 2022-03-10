@@ -2,7 +2,7 @@
 # data
 data_dir: /home/cadit/Data/snu_lib_rect/
 association_dir: /home/cadit/Data/snu_lib_rect/associations.txt
-voc_dir: /home/cadit/RGBD-SLAM/Vocabulary/vocab_34.yml.gz
+voc_dir: /home/cadit/Research/RGBD_SLAM/Vocabulary/vocab_snu_lib_rect.yml.gz
 gt_dir: None
 est_dir: /home/cadit/Result_RGBD/lib_rect_40/stamped_traj_estimate.txt
 
@@ -19,19 +19,19 @@ width: 848
 
 
 loop_detect: 1
-score_threshold: 0.35
+score_threshold: 0.43
 
 # feature
 feature_type: ORB
-num_features: 500
-num_features_tracking_threshold: 300
+num_features: 2000
+num_features_tracking_threshold: 500
 depth_min: 0.5
-depth_max: 10.0
+depth_max: 8.0
 
 
 
-match_threshold_tracking: 20
-loop_frame_th: 200
+match_threshold_tracking: 50
+loop_frame_th: 150
 
 knn_ratio: 0.7
 

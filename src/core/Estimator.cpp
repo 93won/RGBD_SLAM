@@ -11,7 +11,7 @@ namespace RGBDSLAM
         options.minimizer_progress_to_stdout = false;
         options.trust_region_strategy_type = ceres::DOGLEG;
         options.num_threads = 4;
-        options.max_num_iterations = 10;
+        options.max_num_iterations = 100;
         options.max_solver_time_in_seconds = 0.04;
     }
 
@@ -19,7 +19,6 @@ namespace RGBDSLAM
     {
         Mat33 K = camera_->K();
         int window_size_temp = std::min(window_size_, (int)(map_->active_keyframes_.size()));
-        assert(window_size_temp == map_->active_keyframes_.size());
 
         Vec4 qvec_param[window_size_temp + 1];
         Vec3 tvec_param[window_size_temp + 1];
@@ -33,20 +32,24 @@ namespace RGBDSLAM
         for (auto &kfs : map_->active_keyframes_)
         {
             frame2param.insert(std::make_pair(kfs.second->id_, ii));
-            SE3 pose_ = kfs.second->Pose();
-            Eigen::Quaterniond q_eigen(pose_.rotationMatrix());
+            SE3 Twc = kfs.second->Pose();
+            Mat33 R_ = Twc.rotationMatrix();
+            Vec3 t_ = Twc.translation();
+            Eigen::Quaterniond q_eigen(R_);
             qvec_param[ii] = Vec4(q_eigen.w(), q_eigen.x(), q_eigen.y(), q_eigen.z());
-            tvec_param[ii] = pose_.translation();
+            tvec_param[ii] = t_;
             problem.AddParameterBlock(qvec_param[ii].data(), 4);
             problem.AddParameterBlock(tvec_param[ii].data(), 3);
             ii += 1;
         }
 
         frame2param.insert(std::make_pair(frame->id_, ii));
-        SE3 pose_ = frame->Pose();
-        Eigen::Quaterniond q_eigen(pose_.rotationMatrix());
+        SE3 Twc = frame->Pose();
+        Mat33 R_ = Twc.rotationMatrix();
+        Vec3 t_ = Twc.translation();
+        Eigen::Quaterniond q_eigen(R_);
         qvec_param[ii] = Vec4(q_eigen.w(), q_eigen.x(), q_eigen.y(), q_eigen.z());
-        tvec_param[ii] = pose_.translation();
+        tvec_param[ii] = t_;
         problem.AddParameterBlock(qvec_param[ii].data(), 4);
         problem.AddParameterBlock(tvec_param[ii].data(), 3);
 
@@ -74,7 +77,7 @@ namespace RGBDSLAM
                 {
                     int frame_id = item->second;
                     Vec2 obs_src(ob.lock()->position_.pt.x, ob.lock()->position_.pt.y);
-                    ceres::CostFunction *cost_function = ProjectionFactorSimplePinholeConstantIntrinsic::Create(obs_src, K);
+                    ceres::CostFunction *cost_function = ProjectionFactor::Create(obs_src, K);
                     problem.AddResidualBlock(cost_function,
                                              new ceres::CauchyLoss(0.5),
                                              qvec_param[frame_id].data(),
@@ -101,14 +104,36 @@ namespace RGBDSLAM
                              qvec_param[window_size_temp][1],
                              qvec_param[window_size_temp][2],
                              qvec_param[window_size_temp][3]);
-        frame->pose_ = SE3(Q, tvec_param[window_size_temp]);
+
+        // This is just temporary solution ...
+        SE3 pose_inv = SE3(Q, tvec_param[window_size_temp]).inverse();
+        Mat33 R_inv = pose_inv.rotationMatrix();
+        Vec3 t_inv = pose_inv.translation();
+        Eigen::Quaterniond q_inv(R_inv);
+
+
+        //// If 2D
+        // t_inv[1] = 0.0;
+        // q_inv.x() = 0.0;
+        // q_inv.z() = 0.0;
+        // q_inv.normalize();
+
+        SE3 pose__ = SE3(q_inv, t_inv).inverse();
+
+        frame->pose_ = pose__; // SE3(Q, tvec_param[window_size_temp]);
+
+        // LOG(INFO) << pose_inv.translation()[0] << " " << pose_inv.translation()[1] << " " << pose_inv.translation()[2];
+        // LOG(INFO) << q_inv.w() << " "
+        //           << q_inv.x() << " "
+        //           << q_inv.y() << " "
+        //           << q_inv.z();
     }
 
     void Estimator::LocalBundleAdjustment2D(Frame::Ptr &frame)
     {
 
-        // qvec = [w, y]
-        // teve = [x, z]
+        // qvec = [w, z]
+        // teve = [x, y]
 
         Mat33 K = camera_->K();
         int window_size_temp = std::min(window_size_, (int)(map_->active_keyframes_.size()));
@@ -132,9 +157,6 @@ namespace RGBDSLAM
             qvec_param[ii] = Vec4(q_eigen.w(), q_eigen.x(), q_eigen.y(), q_eigen.z());
             tvec_param[ii] = Vec2(pose.translation()[0], pose.translation()[2]);
 
-            // std::pair<Vec4, Vec3> qt_vec = t2v(pose);
-            // qvec_param[ii] = qt_vec.first;                             // Vec2(qt_vec.first[0], qt_vec.first[2]);   // [w, y]
-            // tvec_param[ii] = Vec2(qt_vec.second[0], qt_vec.second[2]); // [x, z]
             problem.AddParameterBlock(qvec_param[ii].data(), 4);
             problem.AddParameterBlock(tvec_param[ii].data(), 2);
             ii += 1;
@@ -171,7 +193,7 @@ namespace RGBDSLAM
                 {
                     int frame_id = item->second;
                     Vec2 obs_src(ob.lock()->position_.pt.x, ob.lock()->position_.pt.y);
-                    ceres::CostFunction *cost_function = ProjectionFactorSimplePinholeConstantIntrinsicPlane::Create(obs_src, K);
+                    ceres::CostFunction *cost_function = ProjectionFactorPlane::Create(obs_src, K);
                     problem.AddResidualBlock(cost_function,
                                              new ceres::CauchyLoss(0.5),
                                              qvec_param[frame_id].data(),
@@ -201,6 +223,11 @@ namespace RGBDSLAM
         Vec2 Trans = tvec_param[window_size_temp];
 
         frame->pose_ = SE3(Q, Vec3(Trans[0], 0.0, Trans[1]));
+        // LOG(INFO) << frame->pose_.translation()[0] << " " << frame->pose_.translation()[1] << " " << frame->pose_.translation()[2];
+        // LOG(INFO) << qvec_param[window_size_temp][0] << " "
+        //           << qvec_param[window_size_temp][1] << " "
+        //           << qvec_param[window_size_temp][2] << " "
+        //           << qvec_param[window_size_temp][3];
     }
 
     SE3 Estimator::EstimateRelPose(std::unordered_map<int, int> &frame2param)
@@ -244,6 +271,8 @@ namespace RGBDSLAM
         }
 
         // Add Reprojection factors
+
+        std::vector<int> covisible_mp_idx;
         for (auto &mp : map_->active_landmarks_)
         {
             int lm_id = frame2param_lm.find(mp.second->id_)->second;
@@ -255,7 +284,7 @@ namespace RGBDSLAM
                 {
                     int frame_id = item->second;
                     Vec2 obs_src(ob.lock()->position_.pt.x, ob.lock()->position_.pt.y);
-                    ceres::CostFunction *cost_function = ProjectionFactorSimplePinholeConstantIntrinsic::Create(obs_src, K);
+                    ceres::CostFunction *cost_function = ProjectionFactor::Create(obs_src, K);
                     problem.AddResidualBlock(cost_function,
                                              new ceres::CauchyLoss(0.5),
                                              qvec_param[frame_id].data(),
@@ -274,11 +303,6 @@ namespace RGBDSLAM
             }
         }
 
-        for (int i = 0; i < (int)map_->active_landmarks_.size(); i++)
-        {
-            problem.SetParameterBlockConstant(lm_param[i].data());
-        }
-
         ceres::Solve(options, &problem, &summary);
 
         Eigen::Quaterniond Q_i(qvec_param[0][0], qvec_param[0][1], qvec_param[0][2], qvec_param[0][3]);
@@ -288,6 +312,20 @@ namespace RGBDSLAM
 
         SE3 relativePose = Pose_j * Pose_i.inverse();
 
+        // This is just temporary solution ...
+        SE3 pose_inv = relativePose.inverse();
+        Mat33 R_inv = pose_inv.rotationMatrix();
+        Vec3 t_inv = pose_inv.translation();
+        Eigen::Quaterniond q_inv(R_inv);
+
+        //// IF 2D
+        // t_inv[1] = 0.0;
+        // q_inv.x() = 0.0;
+        // q_inv.z() = 0.0;
+        // q_inv.normalize();
+
+        SE3 pose__ = SE3(q_inv, t_inv).inverse();
+        relativePose = pose__;
         return relativePose;
     }
 
@@ -344,7 +382,7 @@ namespace RGBDSLAM
                 {
                     int frame_id = item->second;
                     Vec2 obs_src(ob.lock()->position_.pt.x, ob.lock()->position_.pt.y);
-                    ceres::CostFunction *cost_function = ProjectionFactorSimplePinholeConstantIntrinsicPlane::Create(obs_src, K);
+                    ceres::CostFunction *cost_function = ProjectionFactorPlane::Create(obs_src, K);
                     problem.AddResidualBlock(cost_function,
                                              new ceres::CauchyLoss(0.5),
                                              qvec_param[frame_id].data(),
@@ -367,7 +405,7 @@ namespace RGBDSLAM
 
         Eigen::Quaterniond Q_i(qvec_param[0][0], qvec_param[0][1], qvec_param[0][2], qvec_param[0][3]);
         Eigen::Quaterniond Q_j(qvec_param[1][0], qvec_param[1][1], qvec_param[1][2], qvec_param[1][3]);
-        
+
         SE3 Pose_i(Q_i, Vec3(tvec_param[0][0], 0.0, tvec_param[0][1]));
         SE3 Pose_j(Q_j, Vec3(tvec_param[1][0], 0.0, tvec_param[1][1]));
 

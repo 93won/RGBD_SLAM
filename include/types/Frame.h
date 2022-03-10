@@ -36,6 +36,8 @@ namespace RGBDSLAM
         // DBoW2::BowVector BoW_vec;       // Bag of words vector
         // DBoW2::FeatureVector Feat_vec;  // Feature vector
 
+        std::string stamp_;
+
         DBoW3::BowVector BoW_vec;
 
         std::vector<std::shared_ptr<Feature>> features_;
@@ -44,7 +46,7 @@ namespace RGBDSLAM
 
     public: // data members
         Frame() {}
-        Frame(long id, double time_stamp, const SE3 &pose, const cv::Mat &rgb, const cv::Mat &gray, const cv::Mat &depth, const Mat33 &K);
+        Frame(long id, double time_stamp, const SE3 &pose, const cv::Mat &rgb, const cv::Mat &gray, const cv::Mat &depth, const Mat33 &K, const std::string& stamp);
 
         // set and get pose, thread safe
         SE3 Pose();

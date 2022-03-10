@@ -27,30 +27,77 @@ namespace RGBDSLAM
         bool operator()(const T *const qvec_i, const T *const tvec_i, const T *const qvec_j, const T *const tvec_j, T *residuals) const
         {
 
+            // Eigen::Map<const Eigen::Matrix<T, 3, 1>> p_a(tvec_i);
+            // Eigen::Map<const Eigen::Quaternion<T>> q_a(qvec_i);
+
+            // Eigen::Map<const Eigen::Matrix<T, 3, 1>> p_b(tvec_j);
+            // Eigen::Map<const Eigen::Quaternion<T>> q_b(qvec_j);
+
+            // T q_ab_hat_vec[4];
+            // q_ab_hat_vec[0] = T(qvec_odom_[0]);
+            // q_ab_hat_vec[1] = T(qvec_odom_[1]);
+            // q_ab_hat_vec[2] = T(qvec_odom_[2]);
+            // q_ab_hat_vec[3] = T(qvec_odom_[3]);
+
+            // T t_ab_hat_vec[3];
+            // t_ab_hat_vec[0] = T(tvec_odom_[0]);
+            // t_ab_hat_vec[1] = T(tvec_odom_[1]);
+            // t_ab_hat_vec[2] = T(tvec_odom_[2]);
+
+            // Eigen::Map<const Eigen::Matrix<T, 3, 1>> p_ab_hat(t_ab_hat_vec);
+            // Eigen::Map<const Eigen::Quaternion<T>> q_ab_hat(q_ab_hat_vec);
+
+            // // Compute the relative transformation between the two frames.
+            // Eigen::Quaternion<T> q_a_inverse = q_a.conjugate();
+            // Eigen::Quaternion<T> q_ab_estimated = q_a_inverse * q_b;
+
+            // // Represent the displacement between the two frames in the A frame.
+            // Eigen::Matrix<T, 3, 1> p_ab_estimated = q_a_inverse * (p_b - p_a);
+            // // Compute the error between the two orientation estimates.
+            // Eigen::Quaternion<T> delta_q = q_ab_hat.template cast<T>() * q_ab_estimated.conjugate();
+
+            // // Compute the residuals.
+            // // [ position         ]   [ delta_p          ]
+            // // [ orientation (3x1)] = [ 2 * delta_q(0:2) ]
+            // Eigen::Map<Eigen::Matrix<T, 6, 1>> residuals(residuals_ptr);
+            // residuals.template block<3, 1>(0, 0) = p_ab_estimated - p_ab_hat.template cast<T>();
+            // residuals.template block<3, 1>(3, 0) = T(2.0) * delta_q.vec();
+
+            // Eigen::MatrixXd sqrt_information_ = Eigen::MatrixXd::Identity(6, 6);
+
+            // residuals.applyOnTheLeft(sqrt_information_.template cast<T>());  // information matrix
+
             // Rotate and translate.
             Eigen::Matrix<T, 3, 3> R_i, R_j, R_ij, R_o;
             Eigen::Matrix<T, 4, 4> T_i, T_j, T_ij;
 
-            // Q to R --> Edit ceres function like bellow:
-            R_i(0, 0) = T(2)*(qvec_i[0]*qvec_i[0] + qvec_i[1]*qvec_i[1]) - T(1);
-            R_i(0, 1) = T(2)*(qvec_i[1]*qvec_i[2] - qvec_i[0]*qvec_i[3]);
-            R_i(0, 2) = T(2)*(qvec_i[1]*qvec_i[3] + qvec_i[0]*qvec_i[2]);
-            R_i(1, 0) = T(2)*(qvec_i[1]*qvec_i[2] + qvec_i[0]*qvec_i[3]);
-            R_i(1, 1) = T(2)*(qvec_i[0]*qvec_i[0] + qvec_i[2]*qvec_i[2]) - T(1);
-            R_i(1, 2) = T(2)*(qvec_i[2]*qvec_i[3] - qvec_i[0]*qvec_i[1]);
-            R_i(2, 0) = T(2)*(qvec_i[1]*qvec_i[3] - qvec_i[0]*qvec_i[2]);
-            R_i(2, 1) = T(2)*(qvec_i[2]*qvec_i[3] + qvec_i[0]*qvec_i[1]);
-            R_i(2, 2) = T(2)*(qvec_i[0]*qvec_i[0] + qvec_i[3]*qvec_i[3]) - T(1);
+            // Eigen::Quaternion<T> q_i(qvec_i[0], qvec_i[1], qvec_i[2], qvec_i[3]);
+            // Eigen::Quaternion<T> q_j(qvec_j[0], qvec_j[1], qvec_j[2], qvec_j[3]);
 
-            R_j(0, 0) = T(2)*(qvec_j[0]*qvec_j[0] + qvec_j[1]*qvec_j[1]) - T(1);
-            R_j(0, 1) = T(2)*(qvec_j[1]*qvec_j[2] - qvec_j[0]*qvec_j[3]);
-            R_j(0, 2) = T(2)*(qvec_j[1]*qvec_j[3] + qvec_j[0]*qvec_j[2]);
-            R_j(1, 0) = T(2)*(qvec_j[1]*qvec_j[2] + qvec_j[0]*qvec_j[3]);
-            R_j(1, 1) = T(2)*(qvec_j[0]*qvec_j[0] + qvec_j[2]*qvec_j[2]) - T(1);
-            R_j(1, 2) = T(2)*(qvec_j[2]*qvec_j[3] - qvec_j[0]*qvec_j[1]);
-            R_j(2, 0) = T(2)*(qvec_j[1]*qvec_j[3] - qvec_j[0]*qvec_j[2]);
-            R_j(2, 1) = T(2)*(qvec_j[2]*qvec_j[3] + qvec_j[0]*qvec_j[1]);
-            R_j(2, 2) = T(2)*(qvec_j[0]*qvec_j[0] + qvec_j[3]*qvec_j[3]) - T(1);
+            // R_i = q_i.toRotationMatrix();
+            // R_j = q_j.toRotationMatrix();
+
+
+            // Q to R --> Edit ceres function like bellow:
+            R_i(0, 0) = T(2) * (qvec_i[0] * qvec_i[0] + qvec_i[1] * qvec_i[1]) - T(1);
+            R_i(0, 1) = T(2) * (qvec_i[1] * qvec_i[2] - qvec_i[0] * qvec_i[3]);
+            R_i(0, 2) = T(2) * (qvec_i[1] * qvec_i[3] + qvec_i[0] * qvec_i[2]);
+            R_i(1, 0) = T(2) * (qvec_i[1] * qvec_i[2] + qvec_i[0] * qvec_i[3]);
+            R_i(1, 1) = T(2) * (qvec_i[0] * qvec_i[0] + qvec_i[2] * qvec_i[2]) - T(1);
+            R_i(1, 2) = T(2) * (qvec_i[2] * qvec_i[3] - qvec_i[0] * qvec_i[1]);
+            R_i(2, 0) = T(2) * (qvec_i[1] * qvec_i[3] - qvec_i[0] * qvec_i[2]);
+            R_i(2, 1) = T(2) * (qvec_i[2] * qvec_i[3] + qvec_i[0] * qvec_i[1]);
+            R_i(2, 2) = T(2) * (qvec_i[0] * qvec_i[0] + qvec_i[3] * qvec_i[3]) - T(1);
+
+            R_j(0, 0) = T(2) * (qvec_j[0] * qvec_j[0] + qvec_j[1] * qvec_j[1]) - T(1);
+            R_j(0, 1) = T(2) * (qvec_j[1] * qvec_j[2] - qvec_j[0] * qvec_j[3]);
+            R_j(0, 2) = T(2) * (qvec_j[1] * qvec_j[3] + qvec_j[0] * qvec_j[2]);
+            R_j(1, 0) = T(2) * (qvec_j[1] * qvec_j[2] + qvec_j[0] * qvec_j[3]);
+            R_j(1, 1) = T(2) * (qvec_j[0] * qvec_j[0] + qvec_j[2] * qvec_j[2]) - T(1);
+            R_j(1, 2) = T(2) * (qvec_j[2] * qvec_j[3] - qvec_j[0] * qvec_j[1]);
+            R_j(2, 0) = T(2) * (qvec_j[1] * qvec_j[3] - qvec_j[0] * qvec_j[2]);
+            R_j(2, 1) = T(2) * (qvec_j[2] * qvec_j[3] + qvec_j[0] * qvec_j[1]);
+            R_j(2, 2) = T(2) * (qvec_j[0] * qvec_j[0] + qvec_j[3] * qvec_j[3]) - T(1);
 
             T_i.topLeftCorner(3, 3) = R_i;
             T_j.topLeftCorner(3, 3) = R_j;
@@ -106,7 +153,7 @@ namespace RGBDSLAM
     {
     public:
         explicit LoopClosureFactor(const Vec4 &qvec_odom, const Vec3 &tvec_odom) : qvec_odom_(qvec_odom),
-                                                                                tvec_odom_(tvec_odom) {}
+                                                                                   tvec_odom_(tvec_odom) {}
 
         static ceres::CostFunction *Create(const Vec4 &qvec_odom, const Vec3 &tvec_odom)
         {
@@ -121,26 +168,32 @@ namespace RGBDSLAM
             Eigen::Matrix<T, 3, 3> R_i, R_j, R_ij, R_o;
             Eigen::Matrix<T, 4, 4> T_i, T_j, T_ij;
 
-            // Q to R --> Edit ceres function like bellow:
-            R_i(0, 0) = T(2)*(qvec_i[0]*qvec_i[0] + qvec_i[1]*qvec_i[1]) - T(1);
-            R_i(0, 1) = T(2)*(qvec_i[1]*qvec_i[2] - qvec_i[0]*qvec_i[3]);
-            R_i(0, 2) = T(2)*(qvec_i[1]*qvec_i[3] + qvec_i[0]*qvec_i[2]);
-            R_i(1, 0) = T(2)*(qvec_i[1]*qvec_i[2] + qvec_i[0]*qvec_i[3]);
-            R_i(1, 1) = T(2)*(qvec_i[0]*qvec_i[0] + qvec_i[2]*qvec_i[2]) - T(1);
-            R_i(1, 2) = T(2)*(qvec_i[2]*qvec_i[3] - qvec_i[0]*qvec_i[1]);
-            R_i(2, 0) = T(2)*(qvec_i[1]*qvec_i[3] - qvec_i[0]*qvec_i[2]);
-            R_i(2, 1) = T(2)*(qvec_i[2]*qvec_i[3] + qvec_i[0]*qvec_i[1]);
-            R_i(2, 2) = T(2)*(qvec_i[0]*qvec_i[0] + qvec_i[3]*qvec_i[3]) - T(1);
+            // Eigen::Quaternion<T> q_i(qvec_i[0], qvec_i[1], qvec_i[2], qvec_i[3]);
+            // Eigen::Quaternion<T> q_j(qvec_j[0], qvec_j[1], qvec_j[2], qvec_j[3]);
 
-            R_j(0, 0) = T(2)*(qvec_j[0]*qvec_j[0] + qvec_j[1]*qvec_j[1]) - T(1);
-            R_j(0, 1) = T(2)*(qvec_j[1]*qvec_j[2] - qvec_j[0]*qvec_j[3]);
-            R_j(0, 2) = T(2)*(qvec_j[1]*qvec_j[3] + qvec_j[0]*qvec_j[2]);
-            R_j(1, 0) = T(2)*(qvec_j[1]*qvec_j[2] + qvec_j[0]*qvec_j[3]);
-            R_j(1, 1) = T(2)*(qvec_j[0]*qvec_j[0] + qvec_j[2]*qvec_j[2]) - T(1);
-            R_j(1, 2) = T(2)*(qvec_j[2]*qvec_j[3] - qvec_j[0]*qvec_j[1]);
-            R_j(2, 0) = T(2)*(qvec_j[1]*qvec_j[3] - qvec_j[0]*qvec_j[2]);
-            R_j(2, 1) = T(2)*(qvec_j[2]*qvec_j[3] + qvec_j[0]*qvec_j[1]);
-            R_j(2, 2) = T(2)*(qvec_j[0]*qvec_j[0] + qvec_j[3]*qvec_j[3]) - T(1);
+            // R_i = q_i.toRotationMatrix();
+            // R_j = q_j.toRotationMatrix();
+
+            // Q to R --> Edit ceres function like bellow:
+            R_i(0, 0) = T(2) * (qvec_i[0] * qvec_i[0] + qvec_i[1] * qvec_i[1]) - T(1);
+            R_i(0, 1) = T(2) * (qvec_i[1] * qvec_i[2] - qvec_i[0] * qvec_i[3]);
+            R_i(0, 2) = T(2) * (qvec_i[1] * qvec_i[3] + qvec_i[0] * qvec_i[2]);
+            R_i(1, 0) = T(2) * (qvec_i[1] * qvec_i[2] + qvec_i[0] * qvec_i[3]);
+            R_i(1, 1) = T(2) * (qvec_i[0] * qvec_i[0] + qvec_i[2] * qvec_i[2]) - T(1);
+            R_i(1, 2) = T(2) * (qvec_i[2] * qvec_i[3] - qvec_i[0] * qvec_i[1]);
+            R_i(2, 0) = T(2) * (qvec_i[1] * qvec_i[3] - qvec_i[0] * qvec_i[2]);
+            R_i(2, 1) = T(2) * (qvec_i[2] * qvec_i[3] + qvec_i[0] * qvec_i[1]);
+            R_i(2, 2) = T(2) * (qvec_i[0] * qvec_i[0] + qvec_i[3] * qvec_i[3]) - T(1);
+
+            R_j(0, 0) = T(2) * (qvec_j[0] * qvec_j[0] + qvec_j[1] * qvec_j[1]) - T(1);
+            R_j(0, 1) = T(2) * (qvec_j[1] * qvec_j[2] - qvec_j[0] * qvec_j[3]);
+            R_j(0, 2) = T(2) * (qvec_j[1] * qvec_j[3] + qvec_j[0] * qvec_j[2]);
+            R_j(1, 0) = T(2) * (qvec_j[1] * qvec_j[2] + qvec_j[0] * qvec_j[3]);
+            R_j(1, 1) = T(2) * (qvec_j[0] * qvec_j[0] + qvec_j[2] * qvec_j[2]) - T(1);
+            R_j(1, 2) = T(2) * (qvec_j[2] * qvec_j[3] - qvec_j[0] * qvec_j[1]);
+            R_j(2, 0) = T(2) * (qvec_j[1] * qvec_j[3] - qvec_j[0] * qvec_j[2]);
+            R_j(2, 1) = T(2) * (qvec_j[2] * qvec_j[3] + qvec_j[0] * qvec_j[1]);
+            R_j(2, 2) = T(2) * (qvec_j[0] * qvec_j[0] + qvec_j[3] * qvec_j[3]) - T(1);
 
             T_i.topLeftCorner(3, 3) = R_i;
             T_j.topLeftCorner(3, 3) = R_j;
@@ -168,13 +221,13 @@ namespace RGBDSLAM
             ceres::RotationMatrixToQuaternion(R_ij.data(), q_ij);
 
             T w = T(10.0);
-            residuals[0] = (q_ij[0] - T(qvec_odom_[0]))*w;
-            residuals[1] = (q_ij[1] - T(qvec_odom_[1]))*w;
-            residuals[2] = (q_ij[2] - T(qvec_odom_[2]))*w;
-            residuals[3] = (q_ij[3] - T(qvec_odom_[3]))*w;
-            residuals[4] = (t_ij[0] - T(tvec_odom_[0]))*w;
-            residuals[5] = (t_ij[1] - T(tvec_odom_[1]))*w;
-            residuals[6] = (t_ij[2] - T(tvec_odom_[2]))*w;
+            residuals[0] = (q_ij[0] - T(qvec_odom_[0])) * w;
+            residuals[1] = (q_ij[1] - T(qvec_odom_[1])) * w;
+            residuals[2] = (q_ij[2] - T(qvec_odom_[2])) * w;
+            residuals[3] = (q_ij[3] - T(qvec_odom_[3])) * w;
+            residuals[4] = (t_ij[0] - T(tvec_odom_[0])) * w;
+            residuals[5] = (t_ij[1] - T(tvec_odom_[1])) * w;
+            residuals[6] = (t_ij[2] - T(tvec_odom_[2])) * w;
 
             // LOG(INFO) << "Residual Check: "
             //           << T(residuals[0]) << " "
@@ -212,28 +265,6 @@ namespace RGBDSLAM
             Eigen::Matrix<T, 3, 3> R_i, R_j, R_ij, R_o;
             Eigen::Matrix<T, 4, 4> T_i, T_j, T_ij;
             // qvec_i = [w, y] (1, 3 ==> 0)
-            // teve_i = [x, z]
-
-            // // Q to R --> Edit ceres function like bellow:
-            // R_i(0, 0) = T(2) * (qvec_i[0] * qvec_i[0]) - T(1);
-            // R_i(0, 1) = T(0);
-            // R_i(0, 2) = T(2) * (qvec_i[0] * qvec_i[1]);
-            // R_i(1, 0) = T(0);
-            // R_i(1, 1) = T(2) * (qvec_i[0] * qvec_i[0] + qvec_i[1] * qvec_i[1]) - T(1);
-            // R_i(1, 2) = T(0);
-            // R_i(2, 0) = T(2) * (-qvec_i[0] * qvec_i[1]);
-            // R_i(2, 1) = T(0);
-            // R_i(2, 2) = T(2) * (qvec_i[0] * qvec_i[0]) - T(1);
-
-            // R_j(0, 0) = T(2) * (qvec_j[0] * qvec_j[0]) - T(1);
-            // R_j(0, 1) = T(0);
-            // R_j(0, 2) = T(2) * (qvec_j[0] * qvec_j[1]);
-            // R_j(1, 0) = T(0);
-            // R_j(1, 1) = T(2) * (qvec_j[0] * qvec_j[0] + qvec_j[1] * qvec_j[1]) - T(1);
-            // R_j(1, 2) = T(0);
-            // R_j(2, 0) = T(2) * (-qvec_j[0] * qvec_j[1]);
-            // R_j(2, 1) = T(0);
-            // R_j(2, 2) = T(2) * (qvec_j[0] * qvec_j[0]) - T(1);
 
             // Q to R --> Edit ceres function like bellow:
             R_i(0, 0) = T(2) * (qvec_i[0] * qvec_i[0] + qvec_i[1] * qvec_i[1]) - T(1);
@@ -294,7 +325,7 @@ namespace RGBDSLAM
     {
     public:
         explicit LoopClosureFactorPlane(const Vec4 &qvec_odom, const Vec2 &tvec_odom) : qvec_odom_(qvec_odom),
-                                                                                     tvec_odom_(tvec_odom) {}
+                                                                                        tvec_odom_(tvec_odom) {}
 
         static ceres::CostFunction *Create(const Vec4 &qvec_odom, const Vec2 &tvec_odom)
         {
@@ -310,27 +341,6 @@ namespace RGBDSLAM
             Eigen::Matrix<T, 4, 4> T_i, T_j, T_ij;
             // qvec_i = [w, y] (1, 3 ==> 0)
             // teve_i = [x, z]
-
-            // // Q to R --> Edit ceres function like bellow:
-            // R_i(0, 0) = T(2) * (qvec_i[0] * qvec_i[0]) - T(1);
-            // R_i(0, 1) = T(0);
-            // R_i(0, 2) = T(2) * (qvec_i[0] * qvec_i[1]);
-            // R_i(1, 0) = T(0);
-            // R_i(1, 1) = T(2) * (qvec_i[0] * qvec_i[0] + qvec_i[1] * qvec_i[1]) - T(1);
-            // R_i(1, 2) = T(0);
-            // R_i(2, 0) = T(2) * (-qvec_i[0] * qvec_i[1]);
-            // R_i(2, 1) = T(0);
-            // R_i(2, 2) = T(2) * (qvec_i[0] * qvec_i[0]) - T(1);
-
-            // R_j(0, 0) = T(2) * (qvec_j[0] * qvec_j[0]) - T(1);
-            // R_j(0, 1) = T(0);
-            // R_j(0, 2) = T(2) * (qvec_j[0] * qvec_j[1]);
-            // R_j(1, 0) = T(0);
-            // R_j(1, 1) = T(2) * (qvec_j[0] * qvec_j[0] + qvec_j[1] * qvec_j[1]) - T(1);
-            // R_j(1, 2) = T(0);
-            // R_j(2, 0) = T(2) * (-qvec_j[0] * qvec_j[1]);
-            // R_j(2, 1) = T(0);
-            // R_j(2, 2) = T(2) * (qvec_j[0] * qvec_j[0]) - T(1);
 
             // Q to R --> Edit ceres function like bellow:
             R_i(0, 0) = T(2) * (qvec_i[0] * qvec_i[0] + qvec_i[1] * qvec_i[1]) - T(1);
@@ -376,12 +386,12 @@ namespace RGBDSLAM
             T w = T(1.0);
 
             ceres::RotationMatrixToQuaternion(R_ij.data(), q_ij);
-            residuals[0] = (q_ij[0] - T(qvec_odom_[0]))*w; // w
-            residuals[1] = (q_ij[1] - T(qvec_odom_[1]))*w; // y
-            residuals[2] = (q_ij[2] - T(qvec_odom_[2]))*w; // w
-            residuals[3] = (q_ij[3] - T(qvec_odom_[3]))*w; // y
-            residuals[4] = (t_ij[0] - T(tvec_odom_[0]))*w; // x
-            residuals[5] = (t_ij[2] - T(tvec_odom_[1]))*w; // z
+            residuals[0] = (q_ij[0] - T(qvec_odom_[0])) * w; // w
+            residuals[1] = (q_ij[1] - T(qvec_odom_[1])) * w; // y
+            residuals[2] = (q_ij[2] - T(qvec_odom_[2])) * w; // w
+            residuals[3] = (q_ij[3] - T(qvec_odom_[3])) * w; // y
+            residuals[4] = (t_ij[0] - T(tvec_odom_[0])) * w; // x
+            residuals[5] = (t_ij[2] - T(tvec_odom_[1])) * w; // z
             return true;
         }
 
@@ -390,6 +400,5 @@ namespace RGBDSLAM
         const Vec2 tvec_odom_;
     };
 
-    
 }
 #endif

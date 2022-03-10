@@ -8,14 +8,13 @@ namespace RGBDSLAM
         options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
         options.minimizer_progress_to_stdout = false;
         options.trust_region_strategy_type = ceres::DOGLEG;
-        options.num_threads = 4;
-        options.max_num_iterations = 10;
-        options.max_solver_time_in_seconds = 0.04;
+        options.num_threads = 10;
+        options.max_num_iterations = 100;
+        options.max_solver_time_in_seconds = 1.0;
     }
 
     void PoseGraphOptimizer::PoseGraphOptimization(std::vector<std::vector<int>> &loopInfoIdx, std::vector<SE3> &loopInfoRelPose)
     {
-
         Mat33 K = camera_->K();
 
         int nb_poses = map_->keyframes_.size();
@@ -86,10 +85,14 @@ namespace RGBDSLAM
                                      tvec_param[idx_j].data());
         }
 
-        problem.SetParameterBlockConstant(qvec_param[0].data());
-        problem.SetParameterBlockConstant(tvec_param[0].data());
+        for (int i = 0; i < 1; i++)
+        {
+            problem.SetParameterBlockConstant(qvec_param[i].data());
+            problem.SetParameterBlockConstant(tvec_param[i].data());
+        }
 
         ceres::Solve(options, &problem, &summary);
+        std::cout << summary.BriefReport() << std::endl;
 
         for (int i = 0; i < nb_poses; i++)
         {
@@ -97,8 +100,13 @@ namespace RGBDSLAM
             unsigned long frame_id = (unsigned long)map_->keyframe_id_[i];
             auto frame = map_->keyframes_.find(frame_id)->second;
 
+            Vec4 qvec_(qvec_param[i][0], qvec_param[i][1], qvec_param[i][2], qvec_param[i][3]);
+            qvec_ /= qvec_.norm();
+
+            // LOG(INFO) <<"CHECK QVEC NORM: "<<qvec_.norm();
+
             // Update Keyframe Pose
-            Eigen::Quaterniond Q(qvec_param[i][0], qvec_param[i][1], qvec_param[i][2], qvec_param[i][3]);
+            Eigen::Quaterniond Q(qvec_[0], qvec_[1], qvec_[2], qvec_[3]);
             frame->SetPose(SE3(Q, tvec_param[i]));
         }
     }
@@ -173,18 +181,11 @@ namespace RGBDSLAM
         }
 
         // fix initial pose (t=0)
-        problem.SetParameterBlockConstant(qvec_param[0].data());
-        problem.SetParameterBlockConstant(tvec_param[0].data());
-
-        ceres::Solver::Options options;
-        options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
-        options.minimizer_progress_to_stdout = false;
-        options.trust_region_strategy_type = ceres::DOGLEG;
-        options.num_threads = 4;
-        options.max_num_iterations = 10;
-        options.max_solver_time_in_seconds = 0.04;
-        ceres::Solver::Summary summary;
-        ceres::Solve(options, &problem, &summary);
+        for (int i = 0; i < 100; i++)
+        {
+            problem.SetParameterBlockConstant(qvec_param[i].data());
+            problem.SetParameterBlockConstant(tvec_param[i].data());
+        }
 
         for (int i = 0; i < nb_poses; i++)
         {

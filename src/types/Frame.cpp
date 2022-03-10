@@ -3,8 +3,8 @@
 namespace RGBDSLAM
 {
 
-    Frame::Frame(long id, double time_stamp, const SE3 &pose, const cv::Mat &rgb, const cv::Mat &gray, const cv::Mat &depth, const Mat33 &K)
-        : id_(id), time_stamp_(time_stamp), pose_(pose), rgb_(rgb), gray_(gray), depth_(depth), K_(K) {}
+    Frame::Frame(long id, double time_stamp, const SE3 &pose, const cv::Mat &rgb, const cv::Mat &gray, const cv::Mat &depth, const Mat33 &K, const std::string& stamp)
+        : id_(id), time_stamp_(time_stamp), pose_(pose), rgb_(rgb), gray_(gray), depth_(depth), K_(K), stamp_(stamp) {}
 
     Frame::Ptr Frame::CreateFrame()
     {
@@ -43,6 +43,9 @@ namespace RGBDSLAM
 
     Vec3 Frame::world2camera(const Vec3 &p_w)
     {
+        // Rwc = pose_.rotationMatrix()
+        // Twc = pose_.translation()
+        // return Rwc*(p_w - Twc);
         return pose_ * p_w;
     }
 

@@ -220,9 +220,11 @@ namespace RGBDSLAM
         // }
 
         DrawFrame(current_frame_, green);
-        FollowCurrentFrame(vis_camera);
+        //FollowCurrentFrame(vis_camera);
         cv::Mat imSmall;
-        cv::resize(current_frame_->rgb_, imSmall, cv::Size(current_frame_->rgb_.cols/1.5, current_frame_->rgb_.rows/1.5)) ;
+        cv::resize(current_frame_->rgb_, imSmall, cv::Size(current_frame_->rgb_.cols / 2.0, current_frame_->rgb_.rows / 2.0));
+        // cv::imwrite("/home/cadit/test.jpg", imSmall);
+        // pangolin::LoadImage("/home/cadit/test.jpg");
         cv::imshow("image", imSmall);
         cv::waitKey(1);
 
@@ -241,11 +243,12 @@ namespace RGBDSLAM
         std::unique_lock<std::mutex> lock(viewer_data_mutex_);
 
         const float red[3] = {1.0, 0, 0};
+        const float blue[3] = {0.0, 0, 1.0};
 
-        // for (auto &kf : map_->keyframes_)
-        // {
-        //     DrawFrame(kf.second, red);
-        // }
+        for (auto &kf : map_->keyframes_)
+        {
+            DrawFrame(kf.second, blue);
+        }
 
         DrawFrame(current_frame_, green);
         // FollowCurrentFrame(vis_camera);

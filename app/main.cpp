@@ -37,7 +37,7 @@ std::vector<std::string> split(std::string input, char delimiter)
 int main(int argc, char **argv)
 {
 
-    std::string config_file_path_ = "../config/snu_lib_rect.yaml";
+    std::string config_file_path_ = "../config/f2_desk.yaml";
 
     // Initialize detector, descriptor extractor, the number of features to extract
 
@@ -59,39 +59,7 @@ int main(int argc, char **argv)
 
     std::vector<std::string> rgb_list;
     std::vector<std::string> depth_list;
-
-    std::vector<std::vector<double>> qvec;
-    std::vector<std::vector<double>> tvec;
-
-    // read gt path
-    LOG(INFO) << "Read GT...";
-    if (gt_dir != "None")
-    {
-        std::ifstream file(gt_dir);
-
-        if (true == file.is_open())
-        {
-            std::string s;
-            while (file)
-            {
-                getline(file, s);
-
-                std::vector<std::string> pose = split(s, ' ');
-                if (pose.size() == 0)
-                    break;
-                std::vector<double> q{std::stod(pose[7]), std::stod(pose[4]), std::stod(pose[5]), std::stod(pose[6])};
-                std::vector<double> t{std::stod(pose[1]), std::stod(pose[2]), std::stod(pose[3]) + 2.5};
-                qvec.emplace_back(q);
-                tvec.emplace_back(t);
-            }
-
-            file.close();
-        }
-        else
-        {
-            std::cout << "file open fail" << std::endl;
-        }
-    }
+    std::vector<std::string> stamp;
 
     LOG(INFO) << "Read Association...";
     // read association
@@ -113,6 +81,7 @@ int main(int argc, char **argv)
                 max += 1;
                 depth_list.emplace_back(association[1]);
                 rgb_list.emplace_back(association[3]);
+                stamp.emplace_back(association[0]);
             }
 
             file.close();
@@ -136,9 +105,6 @@ int main(int argc, char **argv)
     frontend->SetMap(map);
 
     viewer->SetMap(map);
-    viewer->SetGT(qvec, tvec);
-    
-    frontend->SetGT(qvec, tvec);
     frontend->SetViewer(viewer);
 
     std::vector<SE3> poses;
@@ -154,20 +120,20 @@ int main(int argc, char **argv)
             cv::Mat gray = cv::imread(data_dir + rgb_list[i], 0);
             cv::Mat depth = cv::imread(data_dir + depth_list[i], cv::IMREAD_UNCHANGED);
 
-            cv::imwrite("/home/cadit/Data/snu_lib_rect/debug/" + std::to_string(i) + ".png", img);
+            // cv::imwrite("/home/cadit/Data/snu_lib_rect/debug/" + std::to_string(i) + ".png", img);
             depth.convertTo(depth, CV_32F, PIXEL_TO_METER_SCALEFACTOR);
 
             if (i == 0)
             {
                 Vec3 T_0(0, 0, 0);
                 SE3 Pose_0(SO3(), T_0);
-                Frame::Ptr frame(new Frame(i, 0, Pose_0, img, gray, depth, K));
+                Frame::Ptr frame(new Frame(i, 0, Pose_0, img, gray, depth, K, stamp[i]));
 
                 frontend->AddFrame(frame);
             }
             else
             {
-                Frame::Ptr frame(new Frame(i, 0, frontend->current_frame_->Pose(), img, gray, depth, K));
+                Frame::Ptr frame(new Frame(i, 0, frontend->current_frame_->Pose(), img, gray, depth, K, stamp[i]));
                 frontend->AddFrame(frame);
             }
 
@@ -175,14 +141,6 @@ int main(int argc, char **argv)
 
             Vec3 trans = pose.translation();
             Eigen::Quaterniond rotation(pose.rotationMatrix());
-
-            // LOG(INFO) << "DEBUG TRANSLATION: " << trans[0] << " / "
-            //           << trans[1] << " / "
-            //           << trans[2] << " / "
-            //           << rotation.w() << " / "
-            //           << rotation.x() << " / "
-            //           << rotation.y() << " / "
-            //           << rotation.z();
         }
     }
 
@@ -190,16 +148,22 @@ int main(int argc, char **argv)
 
     std::ofstream ofile(est_dir);
 
+
     if (ofile.is_open())
     {
-        for (int i = 0; i < (int)frontend->frames_.size(); i++)
+        for (int i = 0; i < (int)map->keyframe_id_.size(); i++)
         {
-            if (frontend->frames_[i]->is_keyframe_)
+            int id = map->keyframe_id_[i]; // frame id
+            auto item = map->keyframes_.find(id);
+            if (item != map->keyframes_.end())
             {
-                SE3 pose = frontend->frames_[i]->Pose().inverse();
+                // SE3 Twc = item->second->Pose().inverse();
+
+                SE3 pose = item->second->Pose().inverse();
+
                 Eigen::Quaterniond rotation(pose.rotationMatrix());
                 Vec3 translation = pose.translation();
-                std::string data = std::to_string(i) + " " +
+                std::string data = item->second->stamp_ + " " +
                                    std::to_string(translation[0]) + " " +
                                    std::to_string(translation[1]) + " " +
                                    std::to_string(translation[2]) + " " +
@@ -209,8 +173,30 @@ int main(int argc, char **argv)
                                    std::to_string(rotation.w()) + "\n";
 
                 ofile << data;
+
+                // Vec3 Translation = Twc.translation();
+                // traj.emplace_back(Vec3(Translation[0], Translation[1], Translation[2]));
             }
         }
+        // for (int i = 0; i < (int)frontend->frames_.size(); i++)
+        // {
+        //     if (frontend->frames_[i]->is_keyframe_)
+        //     {
+        //         SE3 pose = frontend->frames_[i]->Pose().inverse();
+        //         Eigen::Quaterniond rotation(pose.rotationMatrix());
+        //         Vec3 translation = pose.translation();
+        //         std::string data = stamp[i] + " " +
+        //                            std::to_string(translation[0]) + " " +
+        //                            std::to_string(translation[1]) + " " +
+        //                            std::to_string(translation[2]) + " " +
+        //                            std::to_string(rotation.x()) + " " +
+        //                            std::to_string(rotation.y()) + " " +
+        //                            std::to_string(rotation.z()) + " " +
+        //                            std::to_string(rotation.w()) + "\n";
+
+        //         ofile << data;
+        //     }
+        // }
     }
 
     ofile.close();

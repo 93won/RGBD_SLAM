@@ -24,7 +24,7 @@ namespace RGBDSLAM
         Viewer();
 
         void SetMap(Map::Ptr map) { map_ = map; }
-        void SetGT(std::vector<std::vector<double>> &q, std::vector<std::vector<double>> &t)
+        void SetGT(std::vector<Vec4> &q, std::vector<Vec3> &t)
         {
             gt_q = q;
             gt_t = t;
@@ -58,8 +58,8 @@ namespace RGBDSLAM
         double fx, fy, cx, cy;
         int width, height;
 
-        std::vector<std::vector<double>> gt_q;
-        std::vector<std::vector<double>> gt_t;
+        std::vector<Vec4> gt_q;
+        std::vector<Vec3> gt_t;
     };
 }
 

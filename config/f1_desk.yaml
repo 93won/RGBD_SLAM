@@ -1,0 +1,39 @@
+%YAML:1.0
+# data
+data_dir: /home/seungwon/Data/rgbd_dataset_freiburg1_desk2/
+association_dir: /home/seungwon/Data/rgbd_dataset_freiburg1_desk2/associations.txt
+voc_dir: /home/seungwon/RGBD_SLAM/Vocabulary/vocab_f1_desk2.yml.gz
+gt_dir: None
+est_dir: /home/seungwon/Result_RGBD/f1_desk/stamped_traj_estimate.txt
+# camera intrinsics
+camera.fx: 525.0
+camera.fy: 525.0
+camera.cx: 319.5
+camera.cy: 239.5
+
+stride: 1
+
+height: 480
+width: 640
+
+loop_detect: 1
+score_threshold: 0.35
+
+# feature
+feature_type: ORB
+num_features: 2000
+num_features_tracking_threshold: 500
+depth_min: 0.5
+depth_max: 2.0
+
+
+
+match_threshold_tracking: 20
+loop_frame_th: 200
+
+knn_ratio: 0.7
+
+window_size: 10
+keyframe_min_dist_threshold: 0.01
+
+pixel_to_meter_scalefactor: 0.0002

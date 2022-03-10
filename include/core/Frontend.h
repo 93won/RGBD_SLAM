@@ -67,7 +67,7 @@ namespace RGBDSLAM
             viewer_->Initialize();
         }
 
-        void SetGT(std::vector<std::vector<double>> &q, std::vector<std::vector<double>> &t)
+        void SetGT(std::vector<Vec4> &q, std::vector<Vec3> &t)
         {
             gt_q = q;
             gt_t = t;
@@ -107,6 +107,7 @@ namespace RGBDSLAM
         // params
         int num_features_tracking_threshold = 50;
         int loop_frame_th_ = 100;
+        double rel_pose_thresh_ = 0.5;
 
         Matcher::Ptr matcher_;
         Extractor::Ptr extractor_;
@@ -116,6 +117,7 @@ namespace RGBDSLAM
         int window_size_ = 5;
 
         std::vector<Frame::Ptr> frames_;
+        std::vector<Frame::Ptr> keyframes_order_;
 
         DBoW3::Vocabulary vocab_;
         DBoW3::Database db_;
@@ -124,8 +126,8 @@ namespace RGBDSLAM
         double score_threshold_;
 
         // gt
-        std::vector<std::vector<double>> gt_q;
-        std::vector<std::vector<double>> gt_t;
+        std::vector<Vec4> gt_q;
+        std::vector<Vec3> gt_t;
     };
 
 }

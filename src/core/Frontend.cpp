@@ -18,6 +18,7 @@ namespace RGBDSLAM
         loop_detect_ = (bool)(Config::Get<int>("loop_detect"));
         score_threshold_ = Config::Get<double>("score_threshold");
         loop_frame_th_ = Config::Get<int>("loop_frame_th");
+        rel_pose_thresh_ = Config::Get<double>("rel_pose_thresh");
 
         std::string voc_dir = Config::Get<std::string>("voc_dir");
         LOG(INFO) << voc_dir;
@@ -66,7 +67,8 @@ namespace RGBDSLAM
         int num_matches = matcher_->MatchTwoFrames(map_->current_keyframe_, current_frame_, map_);
 
         // LocalBundleAdjustment();
-        estimator_->LocalBundleAdjustment2D(current_frame_);
+        // estimator_->LocalBundleAdjustment2D(current_frame_);
+        estimator_->LocalBundleAdjustment(current_frame_);
 
         if (num_matches < num_features_tracking_threshold)
         {
@@ -83,8 +85,11 @@ namespace RGBDSLAM
 
                 if (loopInfoIdx.size() > 0)
                 {
-                    // PoseGraphOptimization(loopInfoIdx, loopInfoRelPose);
-                    pose_graph_optimizer_->PoseGraphOptimization2D(loopInfoIdx, loopInfoRelPose);
+
+                    // pose_graph_optimizer_->PoseGraphOptimization2D(loopInfoIdx, loopInfoRelPose);
+                    LOG(INFO) <<"START POSEGRAPH OPTIMIZATION";
+                    pose_graph_optimizer_->PoseGraphOptimization(loopInfoIdx, loopInfoRelPose);
+                    LOG(INFO) <<"END POSEGRAPH OPTIMIZATION";
 
                     // update map point
 
@@ -156,6 +161,8 @@ namespace RGBDSLAM
             }
 
             int kf_id = r.Id;
+
+            // LOG(INFO) << "LOOP BETWEEN: " << kf_id_current << " and " << kf_id <<" kf num: "<<map_->keyframes_.size() <<" score: "<<r.Score;
             if (kf_id_current - kf_id > loop_frame_th_ && r.Score > score_threshold_)
             {
 
@@ -176,24 +183,45 @@ namespace RGBDSLAM
 
                     SE3 RelPose;
 
-                    if (nb_match == 20)
+                    if (nb_match < 20)
                         RelPose = current_frame_->Pose() * frame_ref->Pose().inverse();
                     else
-                        RelPose = estimator_->EstimateRelPose2D(frame2param);
-
-                    if (RelPose.translation().norm() < 0.5)
                     {
-                        // LOG(INFO) << "######## Loop Candidate Result ########";
-                        // LOG(INFO) << "Frame between: " << frame_ref->id_ << " and " << current_frame_->id_;
+                        // RelPose = estimator_->EstimateRelPose2D(frame2param);
+                        RelPose = estimator_->EstimateRelPose(frame2param);
 
-                        // LOG(INFO) << "Dist: " << RelPose.translation().norm();
-                        // LOG(INFO) << "Score: " << score;
-                        // LOG(INFO) << "RELPOSE: " << RelPose.translation()[0] << " / " << RelPose.translation()[1] << " / " << RelPose.translation()[2];
+                        // LOG(INFO) << RelPose.translation().norm();
+                    }
+
+                    // LOG(INFO) << "######## Loop Candidate Result (Not Added) ########";
+                    // LOG(INFO) << "Frame between: " << frame_ref->id_ << " and " << current_frame_->id_;
+
+                    // LOG(INFO) << "Dist: " << RelPose.translation().norm();
+                    // LOG(INFO) << "Score: " << score;
+                    // LOG(INFO) << "RELPOSE: " << RelPose.translation()[0] << " / " << RelPose.translation()[1] << " / " << RelPose.translation()[2];
+
+                    if (RelPose.translation().norm() < rel_pose_thresh_)
+                    {
+                        LOG(INFO) << "######## Loop Candidate Result ########";
+                        LOG(INFO) << "Frame between: " << frame_ref->id_ << " and " << current_frame_->id_;
+
+                        LOG(INFO) << "Dist: " << RelPose.translation().norm();
+                        LOG(INFO) << "Score: " << score;
+                        LOG(INFO) << "RELPOSE: " << RelPose.translation()[0] << " / " << RelPose.translation()[1] << " / " << RelPose.translation()[2];
 
                         std::vector<int> loopIdxs = {kf_id, kf_id_current};
                         loopInfoIdx.emplace_back(loopIdxs);
                         loopInfoRelPose.emplace_back(RelPose);
                     }
+                    // else
+                    // {
+                    //     LOG(INFO) << "######## Loop Candidate Result (Not Added) ########";
+                    //     LOG(INFO) << "Frame between: " << frame_ref->id_ << " and " << current_frame_->id_;
+
+                    //     LOG(INFO) << "Dist: " << RelPose.translation().norm();
+                    //     LOG(INFO) << "Score: " << score;
+                    //     LOG(INFO) << "RELPOSE: " << RelPose.translation()[0] << " / " << RelPose.translation()[1] << " / " << RelPose.translation()[2];
+                    // }
                 }
             }
         }
@@ -201,6 +229,7 @@ namespace RGBDSLAM
 
     bool Frontend::InsertKeyframe()
     {
+        // LOG(INFO) << "KEYFRAME STAMP: " << current_frame_->stamp_;
         // current frame is a new keyframe
         current_frame_->SetKeyFrame();
 
