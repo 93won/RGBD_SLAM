@@ -48,8 +48,24 @@ int main(int argc, char **argv)
     double fy = Config::Get<double>("camera.fy");
     double cx = Config::Get<double>("camera.cx");
     double cy = Config::Get<double>("camera.cy");
+    double k1 = Config::Get<double>("camera.k1");
+    double k2 = Config::Get<double>("camera.k2");
+    double p1 = Config::Get<double>("camera.p1");
+    double p2 = Config::Get<double>("camera.p2");
+    double k3 = Config::Get<double>("camera.k3");
+
+    cv::Mat cameraMatrix = cv::Mat::eye(3, 3, CV_64FC1);
+    cv::Mat distCoeffs = cv::Mat::zeros(1, 5, CV_64FC1);
+
+    cameraMatrix = (cv::Mat1d(3, 3) << fx, 0, cx, 0, fy, cy, 0, 0, 1);
+    distCoeffs = (cv::Mat1d(1, 5) << k1, k2, p1, p2, k3);
+
+    cv::Mat map1, map2;
+    cv::Size imageSize = cv::Size(640, 480);
+    cv::initUndistortRectifyMap(cameraMatrix, distCoeffs, cv::Mat(), cameraMatrix, imageSize, CV_32FC1, map1, map2);
+
     int max = 0; // Config::Get<int>("nb_img");
-    double PIXEL_TO_METER_SCALEFACTOR = Config::Get<double>("pixel_to_meter_scalefactor");
+    double PIXEL_TO_METER_SCALEFACTOR = 1.0 / Config::Get<double>("pixel_to_meter_scalefactor");
 
     std::string gt_dir = Config::Get<std::string>("gt_dir");
     std::string est_dir = Config::Get<std::string>("est_dir");
@@ -79,8 +95,8 @@ int main(int argc, char **argv)
                     break;
 
                 max += 1;
-                depth_list.emplace_back(association[1]);
-                rgb_list.emplace_back(association[3]);
+                depth_list.emplace_back(association[3]);
+                rgb_list.emplace_back(association[1]);
                 stamp.emplace_back(association[0]);
             }
 
@@ -120,6 +136,10 @@ int main(int argc, char **argv)
             cv::Mat gray = cv::imread(data_dir + rgb_list[i], 0);
             cv::Mat depth = cv::imread(data_dir + depth_list[i], cv::IMREAD_UNCHANGED);
 
+            cv::remap(img, img, map1, map2, cv::INTER_LINEAR);
+            cv::remap(gray, gray, map1, map2, cv::INTER_LINEAR);
+            cv::remap(depth, depth, map1, map2, cv::INTER_LINEAR);
+
             // cv::imwrite("/home/cadit/Data/snu_lib_rect/debug/" + std::to_string(i) + ".png", img);
             depth.convertTo(depth, CV_32F, PIXEL_TO_METER_SCALEFACTOR);
 
@@ -147,7 +167,6 @@ int main(int argc, char **argv)
     // Write estimation result for evaluation
 
     std::ofstream ofile(est_dir);
-
 
     if (ofile.is_open())
     {

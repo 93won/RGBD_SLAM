@@ -115,7 +115,7 @@ namespace RGBDSLAM
         return (int)matches.size();
     }
 
-    int Matcher::MatchTwoFrames(Frame::Ptr &frame_i, Frame::Ptr &frame_j, Map::Ptr &map_, std::unordered_map<int, int> frame2param)
+    int Matcher::MatchTwoFrames(Frame::Ptr &frame_i, Frame::Ptr &frame_j, Map::Ptr &map_, std::unordered_map<int, int>& frame2param)
     {
         // frame_i: ref frame
         // frame_j: current frame
@@ -181,8 +181,7 @@ namespace RGBDSLAM
             }
         }
         matches = matches_good;
-
-        int ii =0;
+        int ii = (int)frame2param.size();
         for (size_t i = 0; i < matches.size(); i++)
         {
             auto m = matches[i];
@@ -191,6 +190,7 @@ namespace RGBDSLAM
             auto mp = frame_i->features_[m.queryIdx]->map_point_.lock();
             if (mp)
             {
+
                 // existing map point
                 frame_j->features_[m.trainIdx]->map_point_ = frame_i->features_[m.queryIdx]->map_point_;
                 mp->AddObservation(frame_j->features_[m.trainIdx]);
@@ -200,6 +200,7 @@ namespace RGBDSLAM
 
                 if (item == frame2param.end())
                 {
+
                     int frame_id = (int)mp->id_frame_;
                     frame2param.insert(std::make_pair(frame_id, ii++));
                 }

@@ -31,13 +31,8 @@ namespace RGBDSLAM
         void SetCamera(Camera::Ptr &camera) { camera_ = camera; }
 
         void LocalBundleAdjustment(Frame::Ptr& frame);
-        void LocalBundleAdjustmentTest(Frame::Ptr& frame);
-        void LocalBundleAdjustment2D(Frame::Ptr& frame);
-        void LocalBundleAdjustmentEuler(Frame::Ptr& frame);
-
+        SE3 EstimateCurrentPose(Frame::Ptr& frame, std::unordered_map<int, int> &frame2param);
         SE3 EstimateRelPose(std::unordered_map<int, int> &frame2param);
-        SE3 EstimateRelPose2D(std::unordered_map<int, int> &frame2param);
-        SE3 EstimateRelPose2D6DOF(std::unordered_map<int, int> &frame2param);
 
         ceres::Solver::Options options;
         ceres::Solver::Summary summary;

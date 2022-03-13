@@ -20,7 +20,7 @@ namespace RGBDSLAM
         Matcher(std::string config_file_path);
 
         int MatchTwoFrames(Frame::Ptr &frame_i, Frame::Ptr &frame_j, Map::Ptr &map_);
-        int MatchTwoFrames(Frame::Ptr &frame_i, Frame::Ptr &frame_j, Map::Ptr &map_, std::unordered_map<int, int> frame2param);
+        int MatchTwoFrames(Frame::Ptr &frame_i, Frame::Ptr &frame_j, Map::Ptr &map_, std::unordered_map<int, int>& frame2param);
 
         cv::FlannBasedMatcher matcher_;
         double knn_ratio_ = 0.7;

@@ -29,6 +29,7 @@ typedef Eigen::Matrix<double, 4, 4> Mat44;
 typedef Eigen::Vector2d Vec2;
 typedef Eigen::Vector3d Vec3;
 typedef Eigen::Vector4d Vec4;
+typedef Eigen::Matrix<double, 5, 1> Vec5;
 typedef Eigen::Matrix<double, 6, 1> Vec6;
 typedef Eigen::Matrix<double, 7, 1> Vec7;
 

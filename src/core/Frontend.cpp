@@ -62,13 +62,28 @@ namespace RGBDSLAM
         // step 2 : link map point (matched current frame features)
         // step 3 : current pose estimation (bundle adjustment)
         // step 4 : add new map point (unmatched current frame features)
-
+        std::unordered_map<int, int> frame2param;
+        frame2param.insert(std::make_pair(current_frame_->id_, 0));
+        frame2param.insert(std::make_pair(map_->current_keyframe_->id_, 1));
         int num_features = extractor_->DetectFeatures(current_frame_); // current frame feature detection
-        int num_matches = matcher_->MatchTwoFrames(map_->current_keyframe_, current_frame_, map_);
+        int num_matches = matcher_->MatchTwoFrames(map_->current_keyframe_, current_frame_, map_, frame2param);
+
+        current_frame_->SetPose(estimator_->EstimateCurrentPose(current_frame_, frame2param));
+        LOG(INFO) << "FRAME ID: " << current_frame_->id_ << " // COVISIBLE FRAMES: " << frame2param.size();
 
         // LocalBundleAdjustment();
         // estimator_->LocalBundleAdjustment2D(current_frame_);
-        estimator_->LocalBundleAdjustment(current_frame_);
+        // estimator_->LocalBundleAdjustment(current_frame_);
+
+        // LOG(INFO) << "Compare Result ############################################################";
+
+        // LOG(INFO) << pp.translation()[0] << " " << pp.translation()[1] << " " << pp.translation()[2];
+        // LOG(INFO) << current_frame_->Pose().translation()[0] << " " << current_frame_->Pose().translation()[1] << " " << current_frame_->Pose().translation()[2];
+
+        // // LOG(INFO) <<"SET: "<<frame2param.size();
+        // SE3 relPose = estimator_->EstimateRelPose(frame2param);
+        // LOG(INFO) <<"GET";
+        // current_frame_->SetPose(estimator_->EstimateCurrentPose(current_frame_, frame2param));
 
         if (num_matches < num_features_tracking_threshold)
         {
@@ -87,9 +102,7 @@ namespace RGBDSLAM
                 {
 
                     // pose_graph_optimizer_->PoseGraphOptimization2D(loopInfoIdx, loopInfoRelPose);
-                    LOG(INFO) <<"START POSEGRAPH OPTIMIZATION";
                     pose_graph_optimizer_->PoseGraphOptimization(loopInfoIdx, loopInfoRelPose);
-                    LOG(INFO) <<"END POSEGRAPH OPTIMIZATION";
 
                     // update map point
 
