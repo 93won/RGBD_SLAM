@@ -11,4 +11,4 @@ Dependencies are listed in the table below along with the version used during de
 | CSparse       |5.1.2|
 | Pangolin      |0.5|
 | Glog          |0.3.5|
-| DBoW          |1.0|
+| DBoW3          |1.0|
