@@ -1,4 +1,4 @@
-# RGBD_SLAM
+# Simple RGB-D SLAM
 
 ## Dependencies
 Dependencies are listed in the table below along with the version used during development and testing.
