@@ -1,10 +1,10 @@
 %YAML:1.0
 # data
-data_dir: /home/seungwon/Data/rgbd_dataset_freiburg2_desk/
-association_dir: /home/seungwon/Data/rgbd_dataset_freiburg2_desk/associations.txt
-voc_dir: /home/seungwon/RGBD_SLAM/Vocabulary/vocab_f2_desk.yml.gz
-gt_dir: None
-est_dir: /home/seungwon/Result_RGBD/f2_desk_05/stamped_traj_estimate.txt
+data_dir: /home/cadit/Data/rgbd_dataset_freiburg2_desk/
+association_dir: /home/cadit/Data/rgbd_dataset_freiburg2_desk/associations.txt
+voc_dir: /home/cadit/RGBD_SLAM/Vocabulary/orbvoc.dbow3
+est_dir: /home/cadit/Result_RGBD/f2_desk_05/stamped_traj_estimate.txt
+
 # camera intrinsics
 camera.fx: 520.908620
 camera.fy: 521.007327
@@ -23,20 +23,22 @@ height: 480
 width: 640
 
 loop_detect: 0
-score_threshold: 0.3
+score_threshold: 0.02
 rel_pose_thresh: 0.5
 
 # feature
 feature_type: ORB
 num_features: 1000
 num_features_tracking_threshold: 100
-depth_min: 0.2
-depth_max: 3.0
+depth_min: 0.5
+depth_max: 3.2
 
 
+# estimator
+obs_count_ratio: 0.1
 
 match_threshold_tracking: 20
-loop_frame_th: 100
+loop_frame_th: 10
 
 knn_ratio: 0.75
 

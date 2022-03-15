@@ -7,10 +7,10 @@ types/Map.cpp
 types/MapPoint.cpp
 utils/PointCloudUtils.cpp
 utils/Viewer.cpp
-core/Frontend.cpp
+core/Tracker.cpp
 core/Matcher.cpp
 core/Extractor.cpp
-core/Estimator.cpp
+core/Optimizer.cpp
 core/PoseGraphOptimizer.cpp)
 
 target_link_libraries(rgbd_slam ${THIRD_PARTY_LIBS})

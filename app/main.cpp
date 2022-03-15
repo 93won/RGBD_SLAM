@@ -13,7 +13,7 @@
 #include <pcl/io/pcd_io.h>
 #include "utils/PointCloudUtils.h"
 #include "utils/Viewer.h"
-#include "core/Frontend.h"
+#include "core/Tracker.h"
 #include "Config.h"
 
 #include <pangolin/pangolin.h>
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
     // Initialize detector, descriptor extractor, the number of features to extract
 
-    Frontend::Ptr frontend = Frontend::Ptr(new Frontend(config_file_path_));
+    Tracker::Ptr tracker = Tracker::Ptr(new Tracker(config_file_path_));
     Map::Ptr map = Map::Ptr(new Map);
 
     double fx = Config::Get<double>("camera.fx");
@@ -117,11 +117,11 @@ int main(int argc, char **argv)
     Camera::Ptr camera = Camera::Ptr(new Camera(fx, fy, cx, cy));
     Viewer::Ptr viewer = Viewer::Ptr(new Viewer);
 
-    frontend->SetCamera(camera);
-    frontend->SetMap(map);
+    tracker->SetCamera(camera);
+    tracker->SetMap(map);
 
     viewer->SetMap(map);
-    frontend->SetViewer(viewer);
+    tracker->SetViewer(viewer);
 
     std::vector<SE3> poses;
 
@@ -149,15 +149,15 @@ int main(int argc, char **argv)
                 SE3 Pose_0(SO3(), T_0);
                 Frame::Ptr frame(new Frame(i, 0, Pose_0, img, gray, depth, K, stamp[i]));
 
-                frontend->AddFrame(frame);
+                tracker->AddFrame(frame);
             }
             else
             {
-                Frame::Ptr frame(new Frame(i, 0, frontend->current_frame_->Pose(), img, gray, depth, K, stamp[i]));
-                frontend->AddFrame(frame);
+                Frame::Ptr frame(new Frame(i, 0, tracker->current_frame_->Pose(), img, gray, depth, K, stamp[i]));
+                tracker->AddFrame(frame);
             }
 
-            SE3 pose = frontend->current_frame_->Pose();
+            SE3 pose = tracker->current_frame_->Pose();
 
             Vec3 trans = pose.translation();
             Eigen::Quaterniond rotation(pose.rotationMatrix());
@@ -197,11 +197,11 @@ int main(int argc, char **argv)
                 // traj.emplace_back(Vec3(Translation[0], Translation[1], Translation[2]));
             }
         }
-        // for (int i = 0; i < (int)frontend->frames_.size(); i++)
+        // for (int i = 0; i < (int)tracker->frames_.size(); i++)
         // {
-        //     if (frontend->frames_[i]->is_keyframe_)
+        //     if (tracker->frames_[i]->is_keyframe_)
         //     {
-        //         SE3 pose = frontend->frames_[i]->Pose().inverse();
+        //         SE3 pose = tracker->frames_[i]->Pose().inverse();
         //         Eigen::Quaterniond rotation(pose.rotationMatrix());
         //         Vec3 translation = pose.translation();
         //         std::string data = stamp[i] + " " +
@@ -222,7 +222,7 @@ int main(int argc, char **argv)
 
     while (1)
     {
-        frontend->viewer_->ShowResult();
+        tracker->viewer_->ShowResult();
     }
 
     return 0;
