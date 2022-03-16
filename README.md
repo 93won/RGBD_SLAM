@@ -26,8 +26,11 @@ make
 
 ## Example
 ### TUM Dataset
-[1] Download a 'freiburg2_desk' sequence from https://vision.in.tum.de/rgbd/dataset/freiburg2/rgbd_dataset_freiburg2_desk.tgz and uncompress it. <br />
-[2] Execute associate.py in the script folder as follows to create the associations.txt file. <br />
+[1] Download a sequence from https://vision.in.tum.de/rgbd/dataset/freiburg2/rgbd_dataset_freiburg2_desk.tgz and uncompress it. <br />
+[2] Execute associate.py in the script folder as bellow to create the associations.txt file.  <br />
 ```Bash
 python associate.py DATA_FOLDER/rgb.txt DATA_FOLTER/depth.txt
 ```
+[3] Download DBoW3 ORB Vocabulary file from https://github.com/rmsalinas/DBow3/blob/master/orbvoc.dbow3 <br />
+[4] Edit data directory in config/f2_desk.yaml <br />
+[5] Run ./bin/test_rgbd <br />
