@@ -16,7 +16,7 @@ Dependencies are listed in the table below along with the version used during de
 | DBoW3          |1.0|
 
 ## Build
-git clone https://github.com/93won/RGBD_SLAM && cd RGBD_SLAM
-mkdir build && cd build
-sudo cmake ..
-sudo make
+|git clone https://github.com/93won/RGBD_SLAM && cd RGBD_SLAM
+|mkdir build && cd build
+|sudo cmake ..
+|sudo make
