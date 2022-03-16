@@ -17,11 +17,7 @@ Dependencies are listed in the table below along with the version used during de
 
 ## Build
 ```ruby
-require 'redcarpet'
-markdown = Redcarpet.new("Hello World!")
-puts markdown.to_html
+git clone https://github.com/93won/RGBD_SLAM && cd RGBD_SLAM
+mkdir build && cd build
+make
 ```
-[1] git clone https://github.com/93won/RGBD_SLAM && cd RGBD_SLAM <br />
-[2] mkdir build && cd build <br />
-[3] cmake .. <br />
-[4] make <br />
