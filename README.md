@@ -23,3 +23,6 @@ git clone https://github.com/93won/RGBD_SLAM && cd RGBD_SLAM
 mkdir build && cd build
 make
 ```
+
+## Example
+### TUM Dataset
