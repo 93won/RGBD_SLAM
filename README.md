@@ -26,3 +26,8 @@ make
 
 ## Example
 ### TUM Dataset
+[1] Download a 'freiburg2_desk' sequence from https://vision.in.tum.de/rgbd/dataset/freiburg2/rgbd_dataset_freiburg2_desk.tgz and uncompress it. <\br>
+[2] Execute associate.py in the script folder as follows to create the associations.txt file.
+```Bash
+python associate.py DATA_FOLDER/rgb.txt DATA_FOLTER/depth.txt
+```
