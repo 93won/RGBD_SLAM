@@ -34,3 +34,6 @@ python associate.py DATA_FOLDER/rgb.txt DATA_FOLTER/depth.txt
 [3] Download DBoW3 ORB Vocabulary file from https://github.com/rmsalinas/DBow3/blob/master/orbvoc.dbow3 <br />
 [4] Edit data directory in config/f2_desk.yaml <br />
 [5] Run ./bin/test_rgbd <br />
+
+## Reference
+https://github.com/gaoxiang12/slambook2
