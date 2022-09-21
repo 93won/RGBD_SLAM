@@ -1,6 +1,6 @@
 # Simple RGB-D SLAM
 
-Simple RGB-D SLAM Implementation for Research (under 1000 lines)
+Simple RGB-D SLAM Implementation for Research (under 1500 lines)
 
 
 ![ezgif com-gif-maker](https://user-images.githubusercontent.com/38591115/158515838-904e531b-7d5b-45fc-9b31-103a468827a1.gif)
